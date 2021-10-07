@@ -631,12 +631,14 @@ static int umac_init_mac_address(struct net_device *ndev)
 	struct umac_priv *umac = netdev_priv(ndev);
 	struct platform_device *pdev = umac->pdev;
 
-	const void *of_mac_addr;
 	char addr[ETH_ALEN];
+	int ret;
 
-	of_mac_addr = of_get_mac_address(pdev->dev.of_node);
-	if (of_mac_addr)
-		memcpy(addr, of_mac_addr, ETH_ALEN);
+	ret = of_get_mac_address(pdev->dev.of_node, addr);
+	if (ret) {
+		netdev_err(ndev,
+			    "Error reading mac address from the DTB\n");
+	}
 
 	if (is_valid_ether_addr(addr)) {
 		ether_addr_copy(ndev->dev_addr, addr);
@@ -648,7 +650,6 @@ static int umac_init_mac_address(struct net_device *ndev)
 			    ndev->dev_addr);
 	}
 
-	memcpy(ndev->dev_addr, &addr, ETH_ALEN);
 	umac_set_mac_address(ndev, addr);
 
 	return 0;
