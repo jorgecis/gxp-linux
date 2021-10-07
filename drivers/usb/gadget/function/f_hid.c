@@ -577,13 +577,6 @@ static int hidg_setup(struct usb_function *f,
 		goto respond;
 		break;
 
-	case ((USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE) << 8
-		  | HID_REQ_SET_IDLE):
-		VDBG(cdev, "set_idle\n");
-		length = 0;
-		goto respond;
-		break;
-
 	case ((USB_DIR_IN | USB_TYPE_STANDARD | USB_RECIP_INTERFACE) << 8
 		  | USB_REQ_GET_DESCRIPTOR):
 		switch (value >> 8) {
