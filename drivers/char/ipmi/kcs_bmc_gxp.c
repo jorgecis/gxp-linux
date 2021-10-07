@@ -21,7 +21,8 @@
 #include <linux/slab.h>
 #include <linux/timer.h>
 
-#include "kcs_bmc.h"
+#include "kcs_bmc_device.h"
+
 
 #define DEVICE_NAME     "gxp-kcs-bmc"
 
@@ -38,38 +39,46 @@
 #define GXP_KCS_LPC_ACTIVATE  0x01
 
 struct hpe_kcs_bmc {
+
+	struct kcs_bmc_device kcs_bmc;
+
 	struct resource *kcsResource;
 	void __iomem *kcsRegMap;
 	struct regmap *kcsCfgMap;
 };
 
-static u8 hpe_kcs_inb(struct kcs_bmc *kcs_bmc, u32 reg)
+static inline struct hpe_kcs_bmc *to_hpe_kcs_bmc(struct kcs_bmc_device *kcs_bmc)
 {
-	struct hpe_kcs_bmc *priv = kcs_bmc_priv(kcs_bmc);
+        return container_of(kcs_bmc, struct hpe_kcs_bmc, kcs_bmc);
+}
+
+static u8 hpe_kcs_inb(struct kcs_bmc_device *kcs_bmc, u32 reg)
+{
+	struct hpe_kcs_bmc *priv = to_hpe_kcs_bmc(kcs_bmc);
 	u32 val = 0;
 
 	val = readb(priv->kcsRegMap + reg);
 	return (u8) val;
 }
 
-static void hpe_kcs_outb(struct kcs_bmc *kcs_bmc, u32 reg, u8 data)
+static void hpe_kcs_outb(struct kcs_bmc_device *kcs_bmc, u32 reg, u8 data)
 {
-	struct hpe_kcs_bmc *priv = kcs_bmc_priv(kcs_bmc);
+	struct hpe_kcs_bmc *priv = to_hpe_kcs_bmc(kcs_bmc);
 
 	writeb(data, priv->kcsRegMap + reg);
 }
 
-static void hpe_kcs_turn_on_auto_irq(struct kcs_bmc *kcs_bmc)
+static void hpe_kcs_turn_on_auto_irq(struct kcs_bmc_device *kcs_bmc)
 {
-	struct hpe_kcs_bmc *priv = kcs_bmc_priv(kcs_bmc);
+	struct hpe_kcs_bmc *priv = to_hpe_kcs_bmc(kcs_bmc);
 
 	writeb(GXP_KCS_AUTOIRQ | GXP_KCS_MSKOBFINT,
 		priv->kcsRegMap + GXP_LPC_INT);
 }
 
-static void hpe_kcs_activate(struct kcs_bmc *kcs_bmc)
+static void hpe_kcs_activate(struct kcs_bmc_device *kcs_bmc)
 {
-	struct hpe_kcs_bmc *priv = kcs_bmc_priv(kcs_bmc);
+	struct hpe_kcs_bmc *priv = to_hpe_kcs_bmc(kcs_bmc);
 
 	regmap_write(priv->kcsCfgMap, 0x00, GXP_KCS_LPC_ACTIVATE);
 }
@@ -77,14 +86,14 @@ static void hpe_kcs_activate(struct kcs_bmc *kcs_bmc)
 
 static irqreturn_t hpe_kcs_irq(int irq, void *arg)
 {
-	struct kcs_bmc *kcs_bmc = arg;
+	struct kcs_bmc_device *kcs_bmc = arg;
 
 	if (!kcs_bmc_handle_event(kcs_bmc))
 		return IRQ_HANDLED;
 	return IRQ_NONE;
 }
 
-static int hpe_kcs_config_irq(struct kcs_bmc *kcs_bmc,
+static int hpe_kcs_config_irq(struct kcs_bmc_device *kcs_bmc,
 	    struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
@@ -104,11 +113,17 @@ static const struct kcs_ioreg gxp_kcs_bmc_ioregs[KCS_CHANNEL_MAX] = {
 	{ .idr = GXP_LPC_IDR, .odr = GXP_LPC_ODR, .str = GXP_LPC_STR },
 };
 
+static const struct kcs_bmc_device_ops hpe_kcs_ops = {
+        .io_inputb = hpe_kcs_inb,
+        .io_outputb = hpe_kcs_outb,
+};
+
+
 static int hpe_kcs_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
 	struct hpe_kcs_bmc *priv;
-	struct kcs_bmc *kcs_bmc;
+	struct kcs_bmc_device *kcs_bmc;
 	u32 chan;
 	int rc;
 
@@ -119,13 +134,13 @@ static int hpe_kcs_probe(struct platform_device *pdev)
 		return -ENODEV;
 	}
 
-	kcs_bmc = kcs_bmc_alloc(dev, sizeof(*priv), chan);
-	if (!kcs_bmc) {
+	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+	if (!priv) {
 		dev_err(dev, "Memory Allocate Fail\n");
 		return -ENOMEM;
 	}
 
-	priv = kcs_bmc_priv(kcs_bmc);
+	kcs_bmc = &priv->kcs_bmc;
 
 	priv->kcsResource = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->kcsRegMap = devm_ioremap_resource(&pdev->dev, priv->kcsResource);
@@ -140,8 +155,7 @@ static int hpe_kcs_probe(struct platform_device *pdev)
 	}
 
 	kcs_bmc->ioreg = gxp_kcs_bmc_ioregs[chan - 1];
-	kcs_bmc->io_inputb = hpe_kcs_inb;
-	kcs_bmc->io_outputb = hpe_kcs_outb;
+	kcs_bmc->ops = &hpe_kcs_ops;
 
 	dev_set_drvdata(dev, kcs_bmc);
 
@@ -151,9 +165,9 @@ static int hpe_kcs_probe(struct platform_device *pdev)
 		return rc;
 	}
 
-	rc = misc_register(&kcs_bmc->miscdev);
+	rc = kcs_bmc_add_device(&priv->kcs_bmc);
 	if (rc) {
-		dev_err(dev, "Unable to register device\n");
+		dev_err(&pdev->dev, "Unable to register device\n");
 		return rc;
 	}
 
@@ -174,9 +188,9 @@ static int hpe_kcs_probe(struct platform_device *pdev)
 
 static int hpe_kcs_remove(struct platform_device *pdev)
 {
-	struct kcs_bmc *kcs_bmc = dev_get_drvdata(&pdev->dev);
+	struct kcs_bmc_device *kcs_bmc = dev_get_drvdata(&pdev->dev);
 
-	misc_deregister(&kcs_bmc->miscdev);
+	kcs_bmc_remove_device(kcs_bmc);
 
 	return 0;
 }
