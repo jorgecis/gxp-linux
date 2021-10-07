@@ -70,4 +70,10 @@ endchoice
 
 source "drivers/mtd/spi-nor/controllers/Kconfig"
 
+config SPI_GXP_SPIFI
+	tristate "GXP SPI Flash Interface"
+	depends on ARCH_HPE
+	help
+	  This enables support for GXP SPI Flash Interface
+
 endif # MTD_SPI_NOR

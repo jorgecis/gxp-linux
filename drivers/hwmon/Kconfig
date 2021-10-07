@@ -1507,6 +1507,34 @@ config SENSORS_PCF8591
 	  These devices are hard to detect and rarely found on mainstream
 	  hardware. If unsure, say N.
 
+config SENSORS_PECI_CPUTEMP
+	tristate "PECI CPU temperature monitoring client"
+	depends on PECI
+	select MFD_INTEL_PECI_CLIENT
+	help
+	  If you say yes here you get support for the generic Intel PECI
+	  cputemp driver which provides Digital Thermal Sensor (DTS) thermal
+	  readings of the CPU package and CPU cores that are accessible using
+	  the PECI Client Command Suite via the processor PECI client.
+	  Check <file:Documentation/hwmon/peci-cputemp.rst> for details.
+
+	  This driver can also be built as a module. If so, the module
+	  will be called peci-cputemp.
+
+config SENSORS_PECI_DIMMTEMP
+	tristate "PECI DIMM temperature monitoring client"
+	depends on PECI
+	select MFD_INTEL_PECI_CLIENT
+	help
+	  If you say yes here you get support for the generic Intel PECI hwmon
+	  driver which provides Digital Thermal Sensor (DTS) thermal readings of
+	  DIMM components that are accessible using the PECI Client Command
+	  Suite via the processor PECI client.
+	  Check <file:Documentation/hwmon/peci-dimmtemp.rst> for details.
+
+	  This driver can also be built as a module. If so, the module
+	  will be called peci-dimmtemp.
+
 source "drivers/hwmon/pmbus/Kconfig"
 
 config SENSORS_PWM_FAN
@@ -1540,6 +1568,16 @@ config SENSORS_SL28CPLD
 
 	  This driver can also be built as a module.  If so, the module
 	  will be called sl28cpld-hwmon.
+
+config SENSORS_SBTSI
+	tristate "Emulated SB-TSI temperature sensor"
+	depends on I2C
+	help
+	  If you say yes here you get support for emulated temperature
+	  sensors on AMD SoCs with SB-TSI interface connected to a BMC device.
+
+	  This driver can also be built as a module. If so, the module will
+	  be called sbtsi_temp.
 
 config SENSORS_SBTSI
 	tristate "Emulated SB-TSI temperature sensor"
@@ -2157,6 +2195,31 @@ config SENSORS_INTEL_M10_BMC_HWMON
 	  This BMC Chip is used on Intel FPGA PCIe Acceleration Cards (PAC). Its
 	  sensors monitor various telemetry data of different components on the
 	  card, e.g. board temperature, FPGA core temperature/voltage/current.
+
+config SENSORS_GXP_FAN_CTRL
+	tristate "GXP Fan Control driver"
+	depends on ARCH_HPE_GXP
+	help
+	  If you say yes here you get support for GXP fan control function via CPLD.
+
+config SENSORS_GXP_CORETEMP
+	tristate "GXP Core Temp driver"
+	depends on ARCH_HPE_GXP
+	help
+	  If you say yes here you get support for GXP core temp function
+
+config SENSORS_GXP_PSU
+	tristate "GXP PSU driver"
+	depends on ARCH_HPE_GXP
+	help
+	  If you say yes here you get support for GXP psu function
+
+config SENSORS_GXP_POWER
+	tristate "GXP POWER driver"
+	depends on ARCH_HPE_GXP
+	help
+	  If you say yes here you get support for GXP power function
+
 
 if ACPI
 

@@ -8793,6 +8793,14 @@ S:	Maintained
 F:	Documentation/devicetree/bindings/i3c/snps,dw-i3c-master.txt
 F:	drivers/i3c/master/dw*
 
+I2C SLAVE MQUEUE DRIVER
+M:	Eduardo Valentin <eduval@amazon.com>
+L:	linux-i2c@vger.kernel.org
+S:	Maintained
+F:	drivers/i2c/i2c-slave-mqueue.c
+F:	Documentation/i2c/slave-mqueue-backend.rst
+F:	Documentation/devicetree/bindings/i2c/i2c-slave-mqueue.txt
+
 I3C SUBSYSTEM
 M:	Alexandre Belloni <alexandre.belloni@bootlin.com>
 L:	linux-i3c@lists.infradead.org (moderated for non-subscribers)

@@ -1823,6 +1823,12 @@ config FB_W100
 
 	  If unsure, say N.
 
+config FB_THUMBNAIL
+	tristate "GXP Thumbnail framebuffer support"
+	depends on FB
+	help
+	  Framebuffer driver for the gxp thumbnail.
+
 config FB_SH_MOBILE_LCDC
 	tristate "SuperH Mobile LCDC framebuffer support"
 	depends on FB && HAVE_CLK && HAS_IOMEM

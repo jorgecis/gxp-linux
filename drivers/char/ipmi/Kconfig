@@ -97,6 +97,18 @@ endif # IPMI_HANDLER
 config IPMI_KCS_BMC
 	tristate
 
+config HPE_KCS_IPMI_BMC
+	depends on ARCH_HPE_GXP || COMPILE_TEST
+	select IPMI_KCS_BMC
+	select REGMAP_MMIO
+	tristate "HPE KCS IPMI BMC driver"
+	help
+	  Provides a driver for the KCS (Keyboard Controller Style) IPMI
+	  interface found on HPE GXP SOCs.
+
+	  The driver implements the BMC side of the KCS contorller, it
+	  provides the access of KCS IO space for BMC side.
+
 config ASPEED_KCS_IPMI_BMC
 	depends on ARCH_ASPEED || COMPILE_TEST
 	select IPMI_KCS_BMC

@@ -1,0 +1,56 @@
+config SOC_VENDOR_HPE
+	bool "HPE SoC drivers"
+	default y
+	depends on ARCH_HPE
+
+if SOC_VENDOR_HPE
+
+config HPE_GXP_SOCLIB
+	bool
+	default n
+
+config HPE_GXP_XREG
+	bool "GXP Xreg Support"
+	depends on ARCH_HPE_GXP
+	select HPE_GXP_SOCLIB
+	help
+	  Say yes here to add support for the XREG.
+
+config HPE_GXP_FN2
+	bool "GXP FN2 (Embedded Management Processor Support And Configuration) Support"
+	depends on ARCH_HPE_GXP
+	select HPE_GXP_SOCLIB
+	help
+	  Say yes here to add support for FN2 Embedded Management Processor Support and Configuration.
+
+config HPE_GXP_CSM
+	bool "GXP CSM (Slave Instrumentation and System Support) Support"
+	depends on ARCH_HPE_GXP
+	select HPE_GXP_SOCLIB
+	select MFD_CORE
+	help
+	  Say yes here to add support for CSM Support and Configuration.
+
+config HPE_GXP_SROM
+	bool "GXP SROM Support"
+	depends on ARCH_HPE_GXP
+	select HPE_GXP_SOCLIB
+	select MFD_CORE
+	help
+	  Say yes here to add support for SROM Configuration.
+
+config HPE_GXP_CHIF
+	bool "GXP CHIF Support"
+	depends on ARCH_HPE_GXP
+	select HPE_GXP_SOCLIB
+	help
+	  Say yes here to add support for CHIF
+
+config HPE_GXP_DBG
+	bool "GXP host debug post message support"
+	depends on ARCH_HPE_GXP
+	select HPE_GXP_SOCLIB
+	help
+	  Say yes here to add support for host debug driver support.
+
+endif
