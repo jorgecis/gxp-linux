@@ -253,6 +253,9 @@ static int gxp_fn2_probe(struct platform_device *pdev)
 	int ret;
 	struct gxp_fn2_drvdata *drvdata;
 	struct resource *res;
+	struct gpio_chip *chip;
+	struct gpio_irq_chip *girq;
+
 
 	drvdata = devm_kzalloc(&pdev->dev, sizeof(struct gxp_fn2_drvdata),
 				GFP_KERNEL);
@@ -287,13 +290,26 @@ static int gxp_fn2_probe(struct platform_device *pdev)
 	if (ret < 0)
 		dev_err(&pdev->dev, "Could not register gpiochip for fn2, %d\n", ret);
 
-	ret = gpiochip_irqchip_add(&drvdata->gpio_chip,
+
+	chip = &drvdata->gpio_chip;
+	girq = &chip->irq;
+	girq->chip = &gxp_gpio_irqchip;
+	/* This will let us handle the parent IRQ in the driver */
+	girq->parent_handler = NULL;
+	girq->num_parents = 0;
+	girq->parents = NULL;
+	girq->default_type = IRQ_TYPE_NONE;
+	girq->handler = handle_simple_irq;
+
+
+/*	ret = gpiochip_irqchip_add(&drvdata->gpio_chip,
 	&gxp_gpio_irqchip, 0, handle_edge_irq, IRQ_TYPE_NONE);
 	if (ret) {
 		dev_info(&pdev->dev, "Could not add irqchip - %d\n", ret);
 		gpiochip_remove(&drvdata->gpio_chip);
 		return ret;
 	}
+*/
 
 	// Set up interrupt from fn2 system event reg
 
