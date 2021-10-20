@@ -725,8 +725,6 @@ static int gxp_udc_start(struct usb_gadget *gadget,
 	drvdata = container_of(gadget, struct gxp_udc_drvdata, gadget);
 	spin_lock(&drvdata->lock);
 
-	pr_info("%s udc%d\n", __func__, drvdata->vdevnum);
-
 	if (drvdata->driver) {
 		dev_err(&drvdata->pdev->dev,
 			"vdev%d start failed driver!=NULL\n", drvdata->vdevnum);
@@ -757,8 +755,6 @@ static int gxp_udc_stop(struct usb_gadget *gadget)
 	drvdata = container_of(gadget, struct gxp_udc_drvdata, gadget);
 	spin_lock(&drvdata->lock);
 
-	pr_info("%s udc%d\n", __func__, drvdata->vdevnum);
-
 	gxp_udc_disconnect(drvdata);
 	drvdata->gadget.speed = USB_SPEED_UNKNOWN;
 	drvdata->driver = NULL;
@@ -776,7 +772,6 @@ static void gxp_udc_out_0byte_status(struct gxp_udc_ep *ep)
 {
 	u32 evdepcc;
 
-	pr_debug("%s\n", __func__);
 	//out
 	evdepcc = readl(ep->base + EVDEPCC);
 	evdepcc &= ~EVDEPCC_CFGINOUT;
@@ -790,7 +785,6 @@ static void gxp_udc_in_0byte_status(struct gxp_udc_ep *ep)
 {
 	u32 evdepcc;
 
-	pr_debug("%s\n", __func__);
 	//in
 	evdepcc = readl(ep->base + EVDEPCC);
 	evdepcc |= EVDEPCC_CFGINOUT;
