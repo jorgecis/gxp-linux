@@ -49,7 +49,7 @@ struct gxp_kcs_bmc {
 
 static inline struct gxp_kcs_bmc *to_gxp_kcs_bmc(struct kcs_bmc_device *kcs_bmc)
 {
-        return container_of(kcs_bmc, struct gxp_kcs_bmc, kcs_bmc);
+	return container_of(kcs_bmc, struct gxp_kcs_bmc, kcs_bmc);
 }
 
 static u8 hpe_kcs_inb(struct kcs_bmc_device *kcs_bmc, u32 reg)
@@ -83,6 +83,10 @@ static void hpe_kcs_activate(struct kcs_bmc_device *kcs_bmc)
 	regmap_write(priv->kcsCfgMap, 0x00, GXP_KCS_LPC_ACTIVATE);
 }
 
+static void hpe_kcs_irq_mask_update(struct kcs_bmc_device *kcs_bmc, u8 mask, u8 state)
+{
+	pr_debug("%s Update mask %x state %x\n", __func__, mask, state);
+}
 
 static irqreturn_t hpe_kcs_irq(int irq, void *arg)
 {
@@ -114,8 +118,9 @@ static const struct kcs_ioreg gxp_kcs_bmc_ioregs[KCS_CHANNEL_MAX] = {
 };
 
 static const struct kcs_bmc_device_ops hpe_kcs_ops = {
-        .io_inputb = hpe_kcs_inb,
-        .io_outputb = hpe_kcs_outb,
+	.irq_mask_update = hpe_kcs_irq_mask_update
+	.io_inputb = hpe_kcs_inb,
+	.io_outputb = hpe_kcs_outb,
 };
 
 
@@ -134,10 +139,8 @@ static int hpe_kcs_probe(struct platform_device *pdev)
 	}
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-	if (!priv) {
-		dev_err(&pdev->dev, "Memory Allocate Fail\n");
+	if (!priv)
 		return -ENOMEM;
-	}
 
 
 	kcs_bmc = &priv->kcs_bmc;
@@ -193,7 +196,7 @@ static int hpe_kcs_probe(struct platform_device *pdev)
 static int hpe_kcs_remove(struct platform_device *pdev)
 {
 	struct gxp_kcs_bmc *priv = platform_get_drvdata(pdev);
-        struct kcs_bmc_device *kcs_bmc = &priv->kcs_bmc;
+	struct kcs_bmc_device *kcs_bmc = &priv->kcs_bmc;
 
 	kcs_bmc_remove_device(kcs_bmc);
 
