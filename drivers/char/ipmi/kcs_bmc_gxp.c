@@ -68,6 +68,16 @@ static void hpe_kcs_outb(struct kcs_bmc_device *kcs_bmc, u32 reg, u8 data)
 	writeb(data, priv->kcsRegMap + reg);
 }
 
+static void hpe_kcs_updateb(struct kcs_bmc_device *kcs_bmc, u32 reg, u8 mask, u8 val)
+{
+        struct gxp_kcs_bmc *priv = to_gxp_kcs_bmc(kcs_bmc);
+        int rc;
+
+        rc = regmap_update_bits(priv->kcsRegMap, reg, mask, val);
+        WARN(rc != 0, "regmap_update_bits() failed: %d\n", rc);
+}
+
+
 static void hpe_kcs_turn_on_auto_irq(struct kcs_bmc_device *kcs_bmc)
 {
 	struct gxp_kcs_bmc *priv = to_gxp_kcs_bmc(kcs_bmc);
@@ -121,6 +131,7 @@ static const struct kcs_bmc_device_ops hpe_kcs_ops = {
 	.irq_mask_update = hpe_kcs_irq_mask_update,
 	.io_inputb = hpe_kcs_inb,
 	.io_outputb = hpe_kcs_outb,
+	.io_updateb = hpe_kcs_updateb,
 };
 
 
