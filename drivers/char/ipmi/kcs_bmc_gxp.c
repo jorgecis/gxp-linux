@@ -118,7 +118,7 @@ static const struct kcs_ioreg gxp_kcs_bmc_ioregs[KCS_CHANNEL_MAX] = {
 };
 
 static const struct kcs_bmc_device_ops hpe_kcs_ops = {
-	.irq_mask_update = hpe_kcs_irq_mask_update
+	.irq_mask_update = hpe_kcs_irq_mask_update,
 	.io_inputb = hpe_kcs_inb,
 	.io_outputb = hpe_kcs_outb,
 };
